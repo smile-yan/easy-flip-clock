@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wails build *)",
+      "Bash(./easy-flip-clock)",
+      "Bash(go doc *)",
+      "Bash(open *)"
+    ]
+  }
+}

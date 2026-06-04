@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FB923C"/>
+      <stop offset="100%" stop-color="#EF4444"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="85" fill="#F9FAFB"/>
+  <circle cx="100" cy="100" r="85" fill="none" stroke="url(#accent)" stroke-width="6"/>
+  <line x1="100" y1="100" x2="100" y2="45" stroke="#1F2937" stroke-width="6" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="145" y2="115" stroke="#FB923C" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="100" cy="100" r="8" fill="#1F2937"/>
+  <circle cx="100" cy="100" r="4" fill="#FB923C"/>
+  <text x="100" y="175" text-anchor="middle" font-family="system-ui" font-size="10" fill="#9CA3AF" letter-spacing="3">FLIP</text>
+</svg>

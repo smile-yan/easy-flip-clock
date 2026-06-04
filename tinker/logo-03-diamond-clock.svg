@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#06B6D4"/>
+    </linearGradient>
+  </defs>
+  <polygon points="100,15 185,100 100,185 15,100" fill="none" stroke="#E5E7EB" stroke-width="6"/>
+  <polygon points="100,15 185,100 100,185 15,100" fill="none" stroke="url(#accent)" stroke-width="6" stroke-dasharray="200 440" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="100" y2="55" stroke="#1F2937" stroke-width="5" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="130" y2="100" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="100" cy="100" r="6" fill="#10B981"/>
+</svg>

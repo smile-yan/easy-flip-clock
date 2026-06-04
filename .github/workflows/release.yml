@@ -1,0 +1,238 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  APP_NAME: easy-flip-clock
+  GO_VERSION: '1.25.x'
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}-${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+            arch: amd64
+            ext: ''
+          - os: windows-latest
+            platform: windows
+            arch: amd64
+            ext: '.exe'
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+            ext: ''
+          - os: macos-latest
+            platform: darwin
+            arch: amd64
+            ext: ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libgtk-3-dev \
+            libwebkit2gtk-4.0-dev \
+            libwebkit2gtk-4.1-dev \
+            libjavascriptcoregtk-4.1-dev \
+            libglib2.0-dev
+
+      - name: Embed Windows icon resource
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          go install github.com/akavel/rsrc@latest
+          rsrc_bin="$(go env GOPATH)/bin/rsrc"
+          if [ -f "${rsrc_bin}.exe" ]; then
+            rsrc_bin="${rsrc_bin}.exe"
+          fi
+          "${rsrc_bin}" -ico frontend/imgs/flipclock.ico -o rsrc_windows_amd64.syso
+          test -s rsrc_windows_amd64.syso
+
+      - name: Build binary
+        shell: bash
+        env:
+          CGO_ENABLED: 1
+          GOOS: ${{ matrix.platform }}
+          GOARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          out_dir="dist/${APP_NAME}-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}"
+          mkdir -p "${out_dir}"
+          go build -ldflags="-s -w" -o "${out_dir}/${APP_NAME}-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}${{ matrix.ext }}" .
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.APP_NAME }}-${{ github.ref_name }}-${{ matrix.platform }}-${{ matrix.arch }}
+          path: dist/${{ env.APP_NAME }}-${{ github.ref_name }}-${{ matrix.platform }}-${{ matrix.arch }}/${{ env.APP_NAME }}-${{ github.ref_name }}-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.ext }}
+          if-no-files-found: error
+
+  package-macos:
+    name: Package macOS DMG
+    needs: build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: ${{ env.APP_NAME }}-${{ github.ref_name }}-darwin-*
+          path: dist
+
+      - name: Create universal binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          arm64_dir="dist/${APP_NAME}-${GITHUB_REF_NAME}-darwin-arm64"
+          amd64_dir="dist/${APP_NAME}-${GITHUB_REF_NAME}-darwin-amd64"
+          universal_dir="dist/${APP_NAME}-${GITHUB_REF_NAME}-darwin-universal"
+          mkdir -p "${universal_dir}"
+          lipo -create -output "${universal_dir}/${APP_NAME}" \
+            "${arm64_dir}/${APP_NAME}-${GITHUB_REF_NAME}-darwin-arm64" \
+            "${amd64_dir}/${APP_NAME}-${GITHUB_REF_NAME}-darwin-amd64"
+
+      - name: Create app bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          app_dir="/tmp/${APP_NAME}.app"
+          rm -rf "${app_dir}"
+          mkdir -p "${app_dir}/Contents/MacOS" "${app_dir}/Contents/Resources"
+
+          cp "dist/${APP_NAME}-${GITHUB_REF_NAME}-darwin-universal/${APP_NAME}" "${app_dir}/Contents/MacOS/${APP_NAME}"
+          chmod +x "${app_dir}/Contents/MacOS/${APP_NAME}"
+
+          if [ -f "frontend/imgs/app.icns" ]; then
+            cp "frontend/imgs/app.icns" "${app_dir}/Contents/Resources/app.icns"
+          fi
+
+          cat > "${app_dir}/Contents/Info.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>${APP_NAME}</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.easyflipclock.${APP_NAME}</string>
+              <key>CFBundleName</key>
+              <string>${APP_NAME}</string>
+              <key>CFBundleDisplayName</key>
+              <string>Easy Flip Clock</string>
+              <key>CFBundleIconFile</key>
+              <string>app.icns</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${version}</string>
+              <key>CFBundleVersion</key>
+              <string>${GITHUB_RUN_NUMBER}</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>10.15</string>
+              <key>NSPrincipalClass</key>
+              <string>NSApplication</string>
+              <key>LSUIElement</key>
+              <true/>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Create DMG
+        shell: bash
+        run: |
+          set -euo pipefail
+          volume_dir="/tmp/${APP_NAME}-dmg"
+          rm -rf "${volume_dir}"
+          mkdir -p "${volume_dir}"
+          cp -R "/tmp/${APP_NAME}.app" "${volume_dir}/"
+          ln -s /Applications "${volume_dir}/Applications"
+          hdiutil create \
+            -volname "Easy Flip Clock" \
+            -srcfolder "${volume_dir}" \
+            -ov \
+            -format UDZO \
+            -fs HFS+ \
+            -scrub \
+            "dist/${APP_NAME}-${GITHUB_REF_NAME}-darwin-universal/${APP_NAME}-${GITHUB_REF_NAME}-macos-universal.dmg"
+
+      - name: Verify DMG
+        shell: bash
+        run: |
+          set -euo pipefail
+          dmg_path="dist/${APP_NAME}-${GITHUB_REF_NAME}-darwin-universal/${APP_NAME}-${GITHUB_REF_NAME}-macos-universal.dmg"
+          hdiutil verify "${dmg_path}"
+          mount_dir="/tmp/${APP_NAME}-verify"
+          rm -rf "${mount_dir}"
+          mkdir -p "${mount_dir}"
+          hdiutil attach "${dmg_path}" -readonly -nobrowse -mountpoint "${mount_dir}"
+          test -d "${mount_dir}/${APP_NAME}.app"
+          hdiutil detach "${mount_dir}"
+          shasum -a 256 "${dmg_path}"
+
+      - name: Upload macOS package artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.APP_NAME }}-${{ github.ref_name }}-darwin-universal
+          path: dist/${{ env.APP_NAME }}-${{ github.ref_name }}-darwin-universal/${{ env.APP_NAME }}-${{ github.ref_name }}-macos-universal.dmg
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs:
+      - build
+      - package-macos
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: ${{ env.APP_NAME }}-${{ github.ref_name }}-*
+          path: release-assets
+
+      - name: List release assets
+        run: |
+          find release-assets -type f -maxdepth 3 -print
+          find release-assets -type f -maxdepth 3 -exec ls -lh {} \;
+          find release-assets -type f -maxdepth 3 -exec shasum -a 256 {} \;
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            release-assets/${{ env.APP_NAME }}-${{ github.ref_name }}-linux-amd64/${{ env.APP_NAME }}-${{ github.ref_name }}-linux-amd64
+            release-assets/${{ env.APP_NAME }}-${{ github.ref_name }}-windows-amd64/${{ env.APP_NAME }}-${{ github.ref_name }}-windows-amd64.exe
+            release-assets/${{ env.APP_NAME }}-${{ github.ref_name }}-darwin-universal/${{ env.APP_NAME }}-${{ github.ref_name }}-macos-universal.dmg

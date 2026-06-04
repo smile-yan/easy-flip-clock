@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A855F7"/>
+      <stop offset="100%" stop-color="#EC4899"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="85" fill="none" stroke="#E5E7EB" stroke-width="8"/>
+  <circle cx="100" cy="100" r="85" fill="none" stroke="url(#accent)" stroke-width="8" stroke-dasharray="40 494" stroke-linecap="round" transform="rotate(-90 100 100)"/>
+  <circle cx="100" cy="100" r="65" fill="none" stroke="#E5E7EB" stroke-width="2" stroke-dasharray="4 8"/>
+  <line x1="100" y1="100" x2="100" y2="50" stroke="#1F2937" stroke-width="6" stroke-linecap="round"/>
+  <line x1="100" y1="100" x2="130" y2="100" stroke="#A855F7" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="100" cy="100" r="8" fill="#A855F7"/>
+</svg>

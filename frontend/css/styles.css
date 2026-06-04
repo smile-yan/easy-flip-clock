@@ -1,0 +1,101 @@
+body {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #010101;
+    overflow: hidden;
+}
+.container {
+    text-align: center;
+    transform: scale(var(--zoom-level, 1)); /* 使用 CSS 变量控制缩放 */
+    transform-origin: center center;
+    transition: transform 0.2s ease-out; /* 平滑缩放效果 */
+    /* transition: transform 1s ease, left 0.2s ease, top 0.2s ease; */
+}
+
+.weekday {
+    text-align: center;
+    color: #EEE;
+	font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.motto {
+    margin-top: 20px;
+    text-align: center;
+    color: #EEE;
+	font-size: 13px;
+}
+
+ /* 设置按钮样式 */
+ .settings-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 5px 10px;
+    /* background-color: #007BFF; */
+    background-color: transparent; /* 背景透明 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+  /* 鼠标悬停区域 */
+.hover-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100px;
+    height: 50px;
+    z-index: 1000;
+}
+
+  /* 弹窗样式 */
+  .settings-modal {
+    display: none; /* 默认隐藏 */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    z-index: 1000;
+}
+
+/* 弹窗背景遮罩 */
+.settings-overlay {
+    display: none; /* 默认隐藏 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+/* 输入框样式 */
+.settings-modal input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.settings-modal button {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo 预览 - 翻转时钟</title>
+  <link rel="stylesheet" href="preview.css">
+  <style>
+    .preview-section {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 24px;
+    }
+    body.dark .preview-section {
+      background: #2d2d2f;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin-bottom: 20px;
+    }
+    body.dark .section-title {
+      color: #f5f5f7;
+    }
+    .logo-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
+    .logo-item {
+      text-align: center;
+    }
+    .logo-item img {
+      width: 180px;
+      height: 180px;
+    }
+    .logo-item span {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #86868b;
+    }
+    body.dark .logo-item span {
+      color: #98989f;
+    }
+
+    .size-scale {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .size-item {
+      text-align: center;
+    }
+    .size-item img {
+      object-fit: contain;
+    }
+    .size-item span {
+      display: block;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #86868b;
+    }
+    body.dark .size-item span {
+      color: #98989f;
+    }
+
+    .nav-mock {
+      display: flex;
+      align-items: center;
+      padding: 16px 24px;
+      background: #1d1d1f;
+      border-radius: 12px;
+      gap: 16px;
+    }
+    .nav-mock.light {
+      background: #f5f5f7;
+    }
+    .nav-mock img {
+      width: 32px;
+      height: 32px;
+    }
+    .nav-mock span {
+      font-size: 15px;
+      color: #f5f5f7;
+      font-weight: 500;
+    }
+    .nav-mock.light span {
+      color: #1d1d1f;
+    }
+
+    .color-palette {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .color-swatch {
+      text-align: center;
+    }
+    .color-swatch div {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+    .color-swatch span {
+      font-size: 11px;
+      color: #86868b;
+      font-family: monospace;
+    }
+    body.dark .color-swatch span {
+      color: #98989f;
+    }
+
+    .browser-mock {
+      background: #f5f5f7;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    body.dark .browser-mock {
+      background: #1d1d1f;
+    }
+    .browser-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .browser-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .browser-dot:nth-child(1) { background: #ff5f57; }
+    .browser-dot:nth-child(2) { background: #febc2e; }
+    .browser-dot:nth-child(3) { background: #28c840; }
+    .browser-content {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      display: flex;
+      justify-content: center;
+    }
+    body.dark .browser-content {
+      background: #2d2d2f;
+    }
+    .browser-content img {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Logo 预览</h1>
+    <p class="subtitle">翻转时钟 · 简约风格</p>
+    <div class="mode-toggle">
+      <button id="toggleDark" class="toggle-btn">切换深色/浅色</button>
+    </div>
+  </header>
+
+  <main style="max-width: 900px; margin: 0 auto; padding: 40px 20px;">
+    <div class="preview-section">
+      <div class="section-title">主 Logo</div>
+      <div class="logo-row">
+        <div class="logo-item">
+          <img src="logo-light.svg" alt="浅色版本">
+          <span>浅色背景</span>
+        </div>
+        <div class="logo-item">
+          <img src="logo-dark.svg" alt="深色版本">
+          <span>深色背景</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-section">
+      <div class="section-title">图标版本</div>
+      <div class="logo-row">
+        <div class="logo-item">
+          <img src="logo-icon-light.svg" alt="浅色图标">
+          <span>浅色背景</span>
+        </div>
+        <div class="logo-item">
+          <img src="logo-icon-dark.svg" alt="深色图标">
+          <span>深色背景</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-section">
+      <div class="section-title">尺寸缩放</div>
+      <div class="size-scale">
+        <div class="size-item">
+          <img src="logo-icon-light.svg" style="width: 160px; height: 160px;" alt="160px">
+          <span>160px</span>
+        </div>
+        <div class="size-item">
+          <img src="logo-icon-light.svg" style="width: 80px; height: 80px;" alt="80px">
+          <span>80px</span>
+        </div>
+        <div class="size-item">
+          <img src="logo-icon-light.svg" style="width: 48px; height: 48px;" alt="48px">
+          <span>48px</span>
+        </div>
+        <div class="size-item">
+          <img src="logo-icon-light.svg" style="width: 32px; height: 32px;" alt="32px">
+          <span>32px</span>
+        </div>
+        <div class="size-item">
+          <img src="logo-icon-light.svg" style="width: 16px; height: 16px;" alt="16px">
+          <span>16px</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-section">
+      <div class="section-title">导航栏应用</div>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="nav-mock">
+          <img src="logo-icon-light.svg" alt="logo">
+          <span>Elect Flip Clock</span>
+        </div>
+        <div class="nav-mock light">
+          <img src="logo-icon-dark.svg" alt="logo">
+          <span>Elect Flip Clock</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-section">
+      <div class="section-title">浏览器预览</div>
+      <div class="browser-mock">
+        <div class="browser-bar">
+          <div class="browser-dot"></div>
+          <div class="browser-dot"></div>
+          <div class="browser-dot"></div>
+        </div>
+        <div class="browser-content">
+          <img src="logo-light.svg" alt="logo in browser">
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-section">
+      <div class="section-title">品牌色彩</div>
+      <div class="color-palette">
+        <div class="color-swatch">
+          <div style="background: #14B8A6;"></div>
+          <span>#14B8A6</span>
+        </div>
+        <div class="color-swatch">
+          <div style="background: #22D3EE;"></div>
+          <span>#22D3EE</span>
+        </div>
+        <div class="color-swatch">
+          <div style="background: #1F2937;"></div>
+          <span>#1F2937</span>
+        </div>
+        <div class="color-swatch">
+          <div style="background: #E5E7EB;"></div>
+          <span>#E5E7EB</span>
+        </div>
+        <div class="color-swatch">
+          <div style="background: #F9FAFB;"></div>
+          <span>#F9FAFB</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const toggleBtn = document.getElementById('toggleDark');
+    let isDark = false;
+    toggleBtn.addEventListener('click', () => {
+      isDark = !isDark;
+      document.body.classList.toggle('dark', isDark);
+    });
+  </script>
+</body>
+</html>

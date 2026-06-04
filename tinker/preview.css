@@ -1,0 +1,150 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+body.dark {
+  background: #1d1d1f;
+  color: #f5f5f7;
+}
+
+header {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+header .subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.mode-toggle {
+  margin-top: 16px;
+}
+
+.toggle-btn {
+  padding: 8px 20px;
+  border: 2px solid rgba(255,255,255,0.6);
+  background: transparent;
+  color: white;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.15);
+  border-color: white;
+}
+
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 3px solid transparent;
+}
+
+body.dark .card {
+  background: #2d2d2f;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
+
+body.dark .card:hover {
+  box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+}
+
+.card.selected {
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+}
+
+.logo-container {
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.label {
+  font-size: 13px;
+  color: #86868b;
+  font-weight: 500;
+}
+
+body.dark .label {
+  color: #98989f;
+}
+
+footer {
+  text-align: center;
+  padding: 30px;
+  color: #86868b;
+  font-size: 14px;
+}
+
+body.dark footer {
+  color: #98989f;
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .logo-container {
+    width: 120px;
+    height: 120px;
+  }
+
+  header h1 {
+    font-size: 22px;
+  }
+}
