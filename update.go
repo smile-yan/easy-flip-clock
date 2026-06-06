@@ -4,18 +4,46 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-// 当前版本号
-const CurrentVersion = "0.0.3"
+// CurrentVersion 当前版本号
+// 在 init() 中从 wails.json 的 version 字段读取
+var CurrentVersion = "0.0.0"
 
 // GitHub 仓库地址
 const RepoOwner = "smile-yan"
 const RepoName = "easy-flip-clock"
+
+// wailsConfig 用于解析 wails.json 中的版本字段
+type wailsConfig struct {
+	Version string `json:"version"`
+}
+
+// init 在程序启动时从 wails.json 读取 version 作为 CurrentVersion 的初始值
+func init() {
+	data, err := os.ReadFile("wails.json")
+	if err != nil {
+		log.Printf("读取 wails.json 失败，使用默认版本 %s: %v", CurrentVersion, err)
+		return
+	}
+
+	var cfg wailsConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		log.Printf("解析 wails.json 失败，使用默认版本 %s: %v", CurrentVersion, err)
+		return
+	}
+
+	if cfg.Version != "" {
+		CurrentVersion = cfg.Version
+		log.Printf("CurrentVersion 初始化为: %s", CurrentVersion)
+	}
+}
 
 // ReleaseInfo 存储 GitHub release 信息
 type ReleaseInfo struct {
