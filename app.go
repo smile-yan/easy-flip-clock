@@ -103,16 +103,7 @@ func createCustomMenuBar() *application.Menu {
 		log.Println("检查更新")
 	})
 	appMenu.AddSeparator()
-	closeItem := appMenu.Add("关闭")
-	closeItem.SetAccelerator("cmd+w")
-	closeItem.OnClick(func(ctx *application.Context) {
-		if mainWindow != nil {
-			mainWindow.Close()
-		}
-	})
-	appMenu.Add("退出").OnClick(func(ctx *application.Context) {
-		globalApp.Quit()
-	})
+	appMenu.AddRole(application.Quit)   // 退出 Cmd+Q
 
 	// 添加 Window 菜单（窗口菜单）
 	windowMenu := menu.AddSubmenu("窗口")
