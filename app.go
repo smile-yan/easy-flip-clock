@@ -88,7 +88,7 @@ func createCustomMenuBar() *application.Menu {
 	menu := application.NewMenu()
 
 	// 添加 App 菜单（应用菜单）
-	appMenu := menu.Add("翻转时钟")
+	appMenu := menu.AddSubmenu("翻转时钟")
 	appMenu.AddRole(application.About)
 	appMenu.AddSeparator()
 	appMenu.AddRole(application.Hide)
@@ -98,7 +98,7 @@ func createCustomMenuBar() *application.Menu {
 	appMenu.AddRole(application.Quit)
 
 	// 添加 Window 菜单（窗口菜单）
-	windowMenu := menu.Add("窗口")
+	windowMenu := menu.AddSubmenu("窗口")
 	windowMenu.AddRole(application.Minimize)
 	windowMenu.AddRole(application.Zoom)
 	windowMenu.AddSeparator()
