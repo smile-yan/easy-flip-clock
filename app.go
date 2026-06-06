@@ -16,6 +16,7 @@ type App struct {
 var assets embed.FS
 
 var mainWindow *application.WebviewWindow
+var globalApp *application.App
 
 func (a *App) ToggleFullscreen() {
 	log.Println("ToggleFullscreen called, mainWindow:", mainWindow)
@@ -82,6 +83,40 @@ func macOptionsForConfig(cfg *Config) application.MacOptions {
 	}
 }
 
+// createCustomMenuBar 创建自定义菜单栏，移除 File 和 Edit 菜单
+func createCustomMenuBar() *application.Menu {
+	menu := application.NewMenu()
+
+	// 添加 App 菜单（应用菜单）
+	appMenu := menu.Add("翻转时钟")
+	appMenu.AddRole(application.About)
+	appMenu.AddSeparator()
+	appMenu.AddRole(application.Hide)
+	appMenu.AddRole(application.HideOthers)
+	appMenu.AddRole(application.UnHide)
+	appMenu.AddSeparator()
+	appMenu.AddRole(application.Quit)
+
+	// 添加 Window 菜单（窗口菜单）
+	windowMenu := menu.Add("窗口")
+	windowMenu.AddRole(application.Minimize)
+	windowMenu.AddRole(application.Zoom)
+	windowMenu.AddSeparator()
+	fullscreenItem := windowMenu.Add("进入全屏")
+	fullscreenItem.SetAccelerator("ctrl+cmd+f")
+	fullscreenItem.OnClick(func(ctx *application.Context) {
+		if mainWindow != nil {
+			if mainWindow.IsFullscreen() {
+				mainWindow.UnFullscreen()
+			} else {
+				mainWindow.Fullscreen()
+			}
+		}
+	})
+
+	return menu
+}
+
 func main() {
 	cfg, err := Load()
 	if err != nil {
@@ -89,7 +124,7 @@ func main() {
 		cfg = DefaultConfig()
 	}
 
-	app := application.New(application.Options{
+	globalApp = application.New(application.Options{
 		Assets: application.AssetOptions{
 			FS: assets,
 		},
@@ -99,7 +134,10 @@ func main() {
 		},
 	})
 
-	mainWindow = app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
+	// 设置自定义菜单栏
+	globalApp.SetMenu(createCustomMenuBar())
+
+	mainWindow = globalApp.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:  "翻转时钟",
 		Width:  cfg.Width,
 		Height: cfg.Height,
@@ -107,7 +145,7 @@ func main() {
 		Y:      cfg.Y,
 	})
 
-	err = app.Run()
+	err = globalApp.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
