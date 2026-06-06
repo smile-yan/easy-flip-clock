@@ -11,7 +11,7 @@ import (
 )
 
 // 当前版本号
-const CurrentVersion = "0.0.1"
+const CurrentVersion = "0.0.3"
 
 // GitHub 仓库地址
 const RepoOwner = "smile-yan"

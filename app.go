@@ -80,13 +80,13 @@ func (a *App) BeforeClose(ctx context.Context) bool {
 
 func macOptionsForConfig(cfg *Config) application.MacOptions {
 	return application.MacOptions{
-		ActivationPolicy:                              application.ActivationPolicyRegular,
+		ActivationPolicy: application.ActivationPolicyRegular,
 		ApplicationShouldTerminateAfterLastWindowClosed: true,
 	}
 }
 
 // createCustomMenuBar 创建自定义菜单栏，移除 File 和 Edit 菜单
-func createCustomMenuBar() *application.Menu {
+func createCustomMenuBar(result *UpdateResult) *application.Menu {
 	menu := application.NewMenu()
 
 	// 添加 App 菜单（应用菜单）
@@ -100,7 +100,6 @@ func createCustomMenuBar() *application.Menu {
 		log.Println("打开设置")
 	})
 	appMenu.Add("检查更新").OnClick(func(ctx *application.Context) {
-		result := CheckForUpdate()
 		log.Printf("检查更新结果: %+v", result)
 
 		if result.HasUpdate {
@@ -175,7 +174,8 @@ func main() {
 	}
 
 	// 关于对话框描述：版本号 + 开源地址
-	description := "v0.0.1\nhttps://github.com/smile-yan/easy-flip-clock"
+	versionResult := CheckForUpdate()
+	description := versionResult.CurrentVer + "\nhttps://github.com/smile-yan/easy-flip-clock"
 
 	globalApp = application.New(application.Options{
 		Name:        "easy-flip-clock",
@@ -191,7 +191,7 @@ func main() {
 	})
 
 	// 设置自定义菜单栏
-	globalApp.SetMenu(createCustomMenuBar())
+	globalApp.SetMenu(createCustomMenuBar(versionResult))
 
 	mainWindow = globalApp.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:  "翻转时钟",
