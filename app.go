@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -16,6 +18,7 @@ type App struct {
 var assets embed.FS
 
 var mainWindow *application.WebviewWindow
+var globalApp *application.App
 
 func (a *App) ToggleFullscreen() {
 	log.Println("ToggleFullscreen called, mainWindow:", mainWindow)
@@ -82,6 +85,81 @@ func macOptionsForConfig(cfg *Config) application.MacOptions {
 	}
 }
 
+// createCustomMenuBar 创建自定义菜单栏，移除 File 和 Edit 菜单
+func createCustomMenuBar() *application.Menu {
+	menu := application.NewMenu()
+
+	// 添加 App 菜单（应用菜单）
+	appMenu := menu.AddSubmenu("easy-flip-clock")
+	appMenu.Add("关于").OnClick(func(ctx *application.Context) {
+		globalApp.ShowAboutDialog()
+	})
+	appMenu.AddSeparator()
+	appMenu.Add("设置").OnClick(func(ctx *application.Context) {
+		// TODO: 打开设置界面
+		log.Println("打开设置")
+	})
+	appMenu.Add("检查更新").OnClick(func(ctx *application.Context) {
+		result := CheckForUpdate()
+		log.Printf("检查更新结果: %+v", result)
+
+		if result.HasUpdate {
+			// 发现新版本，显示询问对话框
+			// 注意：不使用 AttachToWindow，因为 sheet 模式下自定义按钮回调可能不触发
+			dialog := application.QuestionDialog()
+			dialog.SetTitle("发现新版本")
+			dialog.SetMessage(fmt.Sprintf("当前版本: %s\n最新版本: %s\n\n更新说明:\n%s\n\n是否前往下载？", result.CurrentVer, result.LatestVer, result.ReleaseNote))
+
+			// 添加"前往下载"按钮，点击后打开浏览器
+			downloadBtn := dialog.AddButton("前往下载")
+			downloadBtn.SetAsDefault()
+			downloadBtn.OnClick(func() {
+				log.Printf("用户点击下载，打开URL: %s", result.DownloadURL)
+				globalApp.BrowserOpenURL(result.DownloadURL)
+			})
+
+			// 添加"稍后再说"按钮
+			laterBtn := dialog.AddButton("稍后再说")
+			laterBtn.SetAsCancel()
+
+			log.Println("显示更新对话框...")
+			dialog.Show()
+			log.Println("对话框已显示")
+		} else {
+			// 已是最新版本，显示提示对话框
+			dialog := application.InfoDialog()
+			dialog.SetTitle("检查更新")
+			dialog.SetMessage(fmt.Sprintf("当前已是最新版本 %s", result.CurrentVer))
+			dialog.Show()
+		}
+	})
+	appMenu.AddSeparator()
+	quitItem := appMenu.Add("退出")
+	quitItem.SetAccelerator("cmd+q")
+	quitItem.OnClick(func(ctx *application.Context) {
+		globalApp.Quit()
+	})
+
+	// 添加 Window 菜单（窗口菜单）
+	windowMenu := menu.AddSubmenu("窗口")
+	windowMenu.AddRole(application.Minimize)
+	windowMenu.AddRole(application.Zoom)
+	windowMenu.AddSeparator()
+	fullscreenItem := windowMenu.Add("进入全屏")
+	fullscreenItem.SetAccelerator("ctrl+cmd+f")
+	fullscreenItem.OnClick(func(ctx *application.Context) {
+		if mainWindow != nil {
+			if mainWindow.IsFullscreen() {
+				mainWindow.UnFullscreen()
+			} else {
+				mainWindow.Fullscreen()
+			}
+		}
+	})
+
+	return menu
+}
+
 func main() {
 	cfg, err := Load()
 	if err != nil {
@@ -89,7 +167,20 @@ func main() {
 		cfg = DefaultConfig()
 	}
 
-	app := application.New(application.Options{
+	// 读取应用图标
+	iconPath := "frontend/imgs/app-icon-1024.png"
+	iconData, err := os.ReadFile(iconPath)
+	if err != nil {
+		log.Printf("Failed to load icon: %v", err)
+	}
+
+	// 关于对话框描述：版本号 + 开源地址
+	description := "v0.0.1\nhttps://github.com/smile-yan/easy-flip-clock"
+
+	globalApp = application.New(application.Options{
+		Name:        "easy-flip-clock",
+		Description: description,
+		Icon:        iconData,
 		Assets: application.AssetOptions{
 			FS: assets,
 		},
@@ -99,7 +190,10 @@ func main() {
 		},
 	})
 
-	mainWindow = app.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
+	// 设置自定义菜单栏
+	globalApp.SetMenu(createCustomMenuBar())
+
+	mainWindow = globalApp.NewWebviewWindowWithOptions(application.WebviewWindowOptions{
 		Title:  "翻转时钟",
 		Width:  cfg.Width,
 		Height: cfg.Height,
@@ -107,7 +201,7 @@ func main() {
 		Y:      cfg.Y,
 	})
 
-	err = app.Run()
+	err = globalApp.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
