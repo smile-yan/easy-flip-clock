@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"log"
+	"os"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -88,14 +89,23 @@ func createCustomMenuBar() *application.Menu {
 	menu := application.NewMenu()
 
 	// 添加 App 菜单（应用菜单）
-	appMenu := menu.AddSubmenu("翻转时钟")
-	appMenu.AddRole(application.About)
+	appMenu := menu.AddSubmenu("easy-flip-clock")
+	appMenu.Add("关于").OnClick(func(ctx *application.Context) {
+		globalApp.ShowAboutDialog()
+	})
 	appMenu.AddSeparator()
-	appMenu.AddRole(application.Hide)
-	appMenu.AddRole(application.HideOthers)
-	appMenu.AddRole(application.UnHide)
+	appMenu.Add("设置").OnClick(func(ctx *application.Context) {
+		// TODO: 打开设置界面
+		log.Println("打开设置")
+	})
+	appMenu.Add("检查更新").OnClick(func(ctx *application.Context) {
+		// TODO: 检查更新逻辑
+		log.Println("检查更新")
+	})
 	appMenu.AddSeparator()
-	appMenu.AddRole(application.Quit)
+	appMenu.Add("退出").OnClick(func(ctx *application.Context) {
+		globalApp.Quit()
+	})
 
 	// 添加 Window 菜单（窗口菜单）
 	windowMenu := menu.AddSubmenu("窗口")
@@ -124,7 +134,20 @@ func main() {
 		cfg = DefaultConfig()
 	}
 
+	// 读取应用图标
+	iconPath := "frontend/imgs/app-icon-1024.png"
+	iconData, err := os.ReadFile(iconPath)
+	if err != nil {
+		log.Printf("Failed to load icon: %v", err)
+	}
+
+	// 关于对话框描述：版本号 + 开源地址
+	description := "v0.0.1\nhttps://github.com/smile-yan/easy-flip-clock"
+
 	globalApp = application.New(application.Options{
+		Name:        "easy-flip-clock",
+		Description: description,
+		Icon:        iconData,
 		Assets: application.AssetOptions{
 			FS: assets,
 		},

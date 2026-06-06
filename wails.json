@@ -10,7 +10,7 @@
     "name": "",
     "email": ""
   },
-  "version": "",
+  "version": "0.0.1",
   "platforms": ["darwin", "windows", "linux"],
   "macros": [],
   "binding": {},
