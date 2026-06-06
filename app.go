@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"log"
 	"os"
 
@@ -99,8 +100,42 @@ func createCustomMenuBar() *application.Menu {
 		log.Println("打开设置")
 	})
 	appMenu.Add("检查更新").OnClick(func(ctx *application.Context) {
-		// TODO: 检查更新逻辑
-		log.Println("检查更新")
+		result := CheckForUpdate()
+		log.Printf("检查更新结果: %+v", result)
+
+		if result.HasUpdate {
+			// 发现新版本，弹出询问对话框
+			dialog := application.QuestionDialog()
+			dialog.SetTitle("发现新版本")
+			dialog.SetMessage(fmt.Sprintf("当前版本: %s\n最新版本: %s\n\n更新说明:\n%s\n\n是否前往下载？", result.CurrentVer, result.LatestVer, result.ReleaseNote))
+
+			yesBtn := dialog.AddButton("前往下载")
+			yesBtn.SetAsDefault()
+			noBtn := dialog.AddButton("稍后再说")
+			noBtn.SetAsCancel()
+
+			if mainWindow != nil {
+				dialog.AttachToWindow(mainWindow)
+			}
+			dialog.Show()
+
+			// 用户选择前往下载，打开浏览器
+			globalApp.BrowserOpenURL(result.DownloadURL)
+		} else {
+			// 已是最新版本，弹出提示对话框
+			dialog := application.InfoDialog()
+			dialog.SetTitle("检查更新")
+			dialog.SetMessage(fmt.Sprintf("当前已是最新版本 %s", result.CurrentVer))
+
+			okBtn := dialog.AddButton("确定")
+			okBtn.SetAsDefault()
+			okBtn.SetAsCancel()
+
+			if mainWindow != nil {
+				dialog.AttachToWindow(mainWindow)
+			}
+			dialog.Show()
+		}
 	})
 	appMenu.AddSeparator()
 	quitItem := appMenu.Add("退出")
