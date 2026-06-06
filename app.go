@@ -104,36 +104,32 @@ func createCustomMenuBar() *application.Menu {
 		log.Printf("检查更新结果: %+v", result)
 
 		if result.HasUpdate {
-			// 发现新版本，弹出询问对话框
+			// 发现新版本，显示询问对话框
+			// 注意：不使用 AttachToWindow，因为 sheet 模式下自定义按钮回调可能不触发
 			dialog := application.QuestionDialog()
 			dialog.SetTitle("发现新版本")
 			dialog.SetMessage(fmt.Sprintf("当前版本: %s\n最新版本: %s\n\n更新说明:\n%s\n\n是否前往下载？", result.CurrentVer, result.LatestVer, result.ReleaseNote))
 
-			yesBtn := dialog.AddButton("前往下载")
-			yesBtn.SetAsDefault()
-			noBtn := dialog.AddButton("稍后再说")
-			noBtn.SetAsCancel()
+			// 添加"前往下载"按钮，点击后打开浏览器
+			downloadBtn := dialog.AddButton("前往下载")
+			downloadBtn.SetAsDefault()
+			downloadBtn.OnClick(func() {
+				log.Printf("用户点击下载，打开URL: %s", result.DownloadURL)
+				globalApp.BrowserOpenURL(result.DownloadURL)
+			})
 
-			if mainWindow != nil {
-				dialog.AttachToWindow(mainWindow)
-			}
+			// 添加"稍后再说"按钮
+			laterBtn := dialog.AddButton("稍后再说")
+			laterBtn.SetAsCancel()
+
+			log.Println("显示更新对话框...")
 			dialog.Show()
-
-			// 用户选择前往下载，打开浏览器
-			globalApp.BrowserOpenURL(result.DownloadURL)
+			log.Println("对话框已显示")
 		} else {
-			// 已是最新版本，弹出提示对话框
+			// 已是最新版本，显示提示对话框
 			dialog := application.InfoDialog()
 			dialog.SetTitle("检查更新")
 			dialog.SetMessage(fmt.Sprintf("当前已是最新版本 %s", result.CurrentVer))
-
-			okBtn := dialog.AddButton("确定")
-			okBtn.SetAsDefault()
-			okBtn.SetAsCancel()
-
-			if mainWindow != nil {
-				dialog.AttachToWindow(mainWindow)
-			}
 			dialog.Show()
 		}
 	})
