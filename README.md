@@ -172,7 +172,7 @@ APPLESCRIPT
 应用配置存储在：
 
 ```text
-~/.elect-easy-flip-clock/config.json
+~/.easy-flip-clock/config.json
 ```
 
 默认配置：
