@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FlipClock 行为测试</title>
+<link rel="stylesheet" href="frontend/css/flipclock.css">
+<link rel="stylesheet" href="frontend/css/styles.css">
+<style>
+body { background: #010101; color: #fff; font-family: sans-serif; }
+section { padding: 20px; }
+h3 { color: #aaa; margin: 8px 0; }
+.clock { margin: 12px 0; }
+</style>
+</head>
+<body>
+
+<section>
+  <h3>A. TwentyFourHourClock, 不传 showSeconds (原版行为)</h3>
+  <div class="clock" id="c1"></div>
+  <div>现在系统时间: <span id="now1"></span></div>
+</section>
+
+<section>
+  <h3>B. TwentyFourHourClock, showSeconds=true (我之前的 bug 版本)</h3>
+  <div class="clock" id="c2"></div>
+  <div>现在系统时间: <span id="now2"></div>
+</section>
+
+<section>
+  <h3>C. 销毁+重建: 24h, 5s 后销毁重建, 10s 后销毁重建</h3>
+  <div class="clock" id="c3"></div>
+  <div>现在系统时间: <span id="now3"></div>
+</section>
+
+<script src="frontend/js/jquery.min.js"></script>
+<script src="frontend/js/flipclock.min.js"></script>
+<script>
+function tick(id) {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById(id).textContent =
+    pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+setInterval(() => { tick('now1'); tick('now2'); tick('now3'); }, 1000);
+
+// A. 原版: 不传 showSeconds
+var cA = $('#c1').FlipClock({ clockFace: 'TwentyFourHourClock' });
+
+// B. 我之前的 bug 版本: 传 showSeconds=true
+try {
+  var cB = $('#c2').FlipClock({ clockFace: 'TwentyFourHourClock', showSeconds: true });
+} catch (e) {
+  console.error('B init failed', e);
+}
+
+// C. 销毁+重建: 5s 后销毁重建, 10s 后销毁重建
+var cC = $('#c3').FlipClock({ clockFace: 'TwentyFourHourClock' });
+setTimeout(function() {
+  if (cC && cC.clearInterval) cC.clearInterval();
+  if (cC && cC.stop) cC.stop();
+  $('#c3').empty();
+  cC = $('#c3').FlipClock({ clockFace: 'TwentyFourHourClock' });
+  console.log('C: 5s 后第一次重建');
+}, 5000);
+setTimeout(function() {
+  if (cC && cC.clearInterval) cC.clearInterval();
+  if (cC && cC.stop) cC.stop();
+  $('#c3').empty();
+  cC = $('#c3').FlipClock({ clockFace: 'TwentyFourHourClock' });
+  console.log('C: 10s 后第二次重建');
+}, 10000);
+</script>
+</body>
+</html>

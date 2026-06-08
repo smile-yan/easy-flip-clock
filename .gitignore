@@ -117,3 +117,5 @@ output/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+easy-flip-clock

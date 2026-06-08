@@ -1,12 +1,11 @@
 {
-  "$schema": "https://wails.io/schemas/v2/config.json",
   "name": "easy-flip-clock",
   "outputfilename": "easy-flip-clock",
   "author": {
     "name": "smileyan",
     "email": "root@smileyan.cn"
   },
-  "version": "0.0.4",
+  "version": "0.0.5",
   "platforms": ["darwin", "windows", "linux"],
   "devtools": true
 }

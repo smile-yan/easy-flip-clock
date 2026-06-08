@@ -47,8 +47,13 @@ func (a *App) shutdown() {
 
 func (a *App) GetConfig() map[string]any {
 	if a.config == nil {
+		log.Println("[App] GetConfig called with nil config, using defaults")
 		a.config = DefaultConfig()
 	}
+	applyConfigDefaults(a.config)
+	log.Printf("[App] GetConfig: motto=%q theme=%s style=%s time_format=%s show_date=%v show_seconds=%v show_lunar=%v show_motto=%v",
+		a.config.Motto, a.config.Theme, a.config.Style, a.config.TimeFormat,
+		a.config.ShowDate, a.config.ShowSeconds, a.config.ShowLunar, a.config.ShowMotto)
 	return map[string]any{
 		"motto":        a.config.Motto,
 		"width":        a.config.Width,
@@ -56,6 +61,14 @@ func (a *App) GetConfig() map[string]any {
 		"x":            a.config.X,
 		"y":            a.config.Y,
 		"show_in_dock": a.config.ShowInDock,
+		"theme":        a.config.Theme,
+		"style":        a.config.Style,
+		"time_format":  a.config.TimeFormat,
+		"show_date":    a.config.ShowDate,
+		"show_seconds": a.config.ShowSeconds,
+		"show_lunar":   a.config.ShowLunar,
+		"show_motto":   a.config.ShowMotto,
+		"color":        a.config.Color,
 	}
 }
 
@@ -66,6 +79,110 @@ func (a *App) SaveConfig(motto string, showInDock bool) error {
 	a.config.Motto = motto
 	a.config.ShowInDock = showInDock
 	return Save(a.config)
+}
+
+// SaveTheme 仅更新主题设置并持久化。
+func (a *App) SaveTheme(theme string) error {
+	if a.config == nil {
+		a.config = DefaultConfig()
+	}
+	if !isValidTheme(theme) {
+		return fmt.Errorf("unsupported theme: %s", theme)
+	}
+	a.config.Theme = theme
+	return Save(a.config)
+}
+
+// SaveSettings 一次性保存设置面板中可调的所有字段。
+// 参数使用 map[string]any，因为当前 Wails v3 绑定层不会把 JS 对象自动转换成 Go 结构体。
+// Pro 字段（color）即使传入也会被保存，仅作为占位。
+func (a *App) SaveSettings(payload map[string]any) error {
+	log.Printf("[App] SaveSettings called with payload=%+v", payload)
+	if a.config == nil {
+		log.Println("[App] SaveSettings: config is nil, initializing defaults")
+		a.config = DefaultConfig()
+	}
+	applyConfigDefaults(a.config)
+
+	// motto 允许空字符串（用户清空座右铭），不要用非空守卫
+	if v, ok := payload["motto"].(string); ok {
+		a.config.Motto = v
+	}
+	if v, ok := payload["show_in_dock"].(bool); ok {
+		a.config.ShowInDock = v
+	}
+	if v, ok := payload["theme"].(string); ok && isValidTheme(v) {
+		a.config.Theme = v
+	}
+	if v, ok := payload["style"].(string); ok && isValidStyle(v) {
+		a.config.Style = v
+	}
+	if v, ok := payload["time_format"].(string); ok && isValidTimeFormat(v) {
+		a.config.TimeFormat = v
+	}
+	if v, ok := payload["show_date"].(bool); ok {
+		a.config.ShowDate = v
+	}
+	if v, ok := payload["show_seconds"].(bool); ok {
+		a.config.ShowSeconds = v
+	}
+	if v, ok := payload["show_lunar"].(bool); ok {
+		a.config.ShowLunar = v
+	}
+	if v, ok := payload["show_motto"].(bool); ok {
+		a.config.ShowMotto = v
+	}
+	// color 字段属于 Pro 功能，目前只存不生效。
+	if v, ok := payload["color"].(string); ok {
+		a.config.Color = v
+	}
+	log.Printf("[App] SaveSettings: updated config motto=%q theme=%s style=%s time_format=%s", a.config.Motto, a.config.Theme, a.config.Style, a.config.TimeFormat)
+	if err := Save(a.config); err != nil {
+		log.Printf("[App] SaveSettings failed: %v", err)
+		return err
+	}
+	log.Println("[App] SaveSettings succeeded")
+	return nil
+}
+
+func isValidTheme(theme string) bool {
+	for _, t := range AvailableThemes {
+		if t == theme {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidStyle(style string) bool {
+	for _, s := range AvailableStyles {
+		if s == style {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidTimeFormat(format string) bool {
+	for _, f := range AvailableTimeFormats {
+		if f == format {
+			return true
+		}
+	}
+	return false
+}
+
+// applyConfigDefaults 对从老版本配置文件读出的 Config 做字段补全。
+func applyConfigDefaults(cfg *Config) {
+	if cfg.Theme == "" {
+		cfg.Theme = DefaultTheme
+	}
+	if cfg.Style == "" {
+		cfg.Style = DefaultStyle
+	}
+	if cfg.TimeFormat == "" {
+		cfg.TimeFormat = DefaultTimeFormat
+	}
 }
 
 func (a *App) BeforeClose(ctx context.Context) bool {
@@ -96,8 +213,10 @@ func createCustomMenuBar(result *UpdateResult) *application.Menu {
 	})
 	appMenu.AddSeparator()
 	appMenu.Add("设置").OnClick(func(ctx *application.Context) {
-		// TODO: 打开设置界面
-		log.Println("打开设置")
+		// 通过事件通知前端打开设置弹窗
+		globalApp.Events.Emit(&application.WailsEvent{
+			Name: "open-settings",
+		})
 	})
 	appMenu.Add("检查更新").OnClick(func(ctx *application.Context) {
 		log.Printf("检查更新结果: %+v", result)
@@ -165,6 +284,7 @@ func main() {
 		log.Printf("Failed to load config, using defaults: %v", err)
 		cfg = DefaultConfig()
 	}
+	log.Printf("[main] Loaded config motto=%q theme=%s style=%s time_format=%s", cfg.Motto, cfg.Theme, cfg.Style, cfg.TimeFormat)
 
 	// 读取应用图标
 	iconPath := "frontend/imgs/app-icon-1024.png"
@@ -177,6 +297,8 @@ func main() {
 	versionResult := CheckForUpdate()
 	description := versionResult.CurrentVer + "\nhttps://github.com/smile-yan/easy-flip-clock"
 
+	app := &App{config: cfg}
+
 	globalApp = application.New(application.Options{
 		Name:        "easy-flip-clock",
 		Description: description,
@@ -186,7 +308,7 @@ func main() {
 		},
 		Mac: macOptionsForConfig(cfg),
 		Bind: []any{
-			&App{},
+			app,
 		},
 	})
 
@@ -199,6 +321,15 @@ func main() {
 		Height: cfg.Height,
 		X:      cfg.X,
 		Y:      cfg.Y,
+		ShouldClose: func(window *application.WebviewWindow) bool {
+			log.Println("[main] ShouldClose triggered, saving config")
+			if err := Save(app.config); err != nil {
+				log.Printf("[main] Failed to save config on close: %v", err)
+			} else {
+				log.Println("[main] Config saved on close")
+			}
+			return true
+		},
 	})
 
 	err = globalApp.Run()
