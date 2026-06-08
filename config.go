@@ -31,7 +31,7 @@ type Config struct {
 const DefaultTheme = "dark"
 
 // AvailableThemes 列出所有可用的主题名称。
-var AvailableThemes = []string{"dark", "light", "sepia", "blue"}
+var AvailableThemes = []string{"dark", "light", "sepia", "blue", "forest", "sunset", "midnight", "ocean", "rose", "slate"}
 
 // DefaultStyle is the clock style used when none is configured.
 const DefaultStyle = "with-seconds"

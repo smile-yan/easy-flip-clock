@@ -36,8 +36,6 @@
     --check-border: rgba(255, 255, 255, 0.35);
     --check-checked-bg: #e8eef4;
     --check-disabled-bg: #1a1a1a;
-    --color-track: linear-gradient(90deg, #000 0%, #444 25%, #888 50%, #ddd 75%, #fff 100%);
-    --color-handle-border: #ffffff;
     --pro-tag-bg: #555;
     --pro-tag-text: #ddd;
 }
@@ -73,6 +71,72 @@
     --card-bg: #1b3a6b;
     --card-shadow: rgba(0, 0, 0, 0.5);
     --card-divider: rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="forest"] {
+    --bg-color: #0d1f17;
+    --text-color: #c8e6c9;
+    --motto-color: #b3d9b3;
+    --weekday-color: #b3d9b3;
+    --lunar-color: #88a988;
+    --card-bg: #1a3a2a;
+    --card-shadow: rgba(0, 0, 0, 0.55);
+    --card-divider: rgba(0, 0, 0, 0.45);
+}
+
+:root[data-theme="sunset"] {
+    --bg-color: #2a0f0a;
+    --text-color: #ffe0b2;
+    --motto-color: #ffccbc;
+    --weekday-color: #ffccbc;
+    --lunar-color: #d7a48c;
+    --card-bg: #5c2410;
+    --card-shadow: rgba(0, 0, 0, 0.6);
+    --card-divider: rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="midnight"] {
+    --bg-color: #11071f;
+    --text-color: #d8c2f0;
+    --motto-color: #c2a8e0;
+    --weekday-color: #c2a8e0;
+    --lunar-color: #9781b3;
+    --card-bg: #2a1a44;
+    --card-shadow: rgba(0, 0, 0, 0.6);
+    --card-divider: rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="ocean"] {
+    --bg-color: #04262b;
+    --text-color: #b3ecf0;
+    --motto-color: #9adde2;
+    --weekday-color: #9adde2;
+    --lunar-color: #6abac1;
+    --card-bg: #0a4450;
+    --card-shadow: rgba(0, 0, 0, 0.55);
+    --card-divider: rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="rose"] {
+    --bg-color: #2a0e1a;
+    --text-color: #ffd0d8;
+    --motto-color: #f5b8c4;
+    --weekday-color: #f5b8c4;
+    --lunar-color: #c98a96;
+    --card-bg: #4d1a2e;
+    --card-shadow: rgba(0, 0, 0, 0.55);
+    --card-divider: rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="slate"] {
+    --bg-color: #1a1d21;
+    --text-color: #d8dadc;
+    --motto-color: #b8bcc0;
+    --weekday-color: #b8bcc0;
+    --lunar-color: #8e9296;
+    --card-bg: #2c3034;
+    --card-shadow: rgba(0, 0, 0, 0.55);
+    --card-divider: rgba(0, 0, 0, 0.45);
 }
 
 body {
@@ -463,38 +527,6 @@ body {
 .settings-text-input:focus {
     outline: none;
     border-bottom-color: var(--modal-accent);
-}
-
-/* === 颜色条（Pro 占位） === */
-.color-picker {
-    position: relative;
-    height: 18px;
-    width: 220px;
-    margin-top: 4px;
-    opacity: 0.45;
-    cursor: not-allowed;
-    filter: saturate(0.4);
-}
-.color-track {
-    position: absolute;
-    left: 0; right: 0; top: 0;
-    height: 12px;
-    background: var(--color-track);
-    border-radius: 6px;
-}
-.color-handle {
-    position: absolute;
-    top: -6px;
-    transform: translateX(-50%);
-    color: var(--color-handle-border);
-    font-size: 12px;
-    line-height: 1;
-    text-shadow: 0 0 2px rgba(0,0,0,0.6);
-    pointer-events: none;
-}
-.color-handle .color-arrow {
-    display: inline-block;
-    transform: rotate(180deg);
 }
 
 /* === 翻页时钟卡片：跟随主题 === */

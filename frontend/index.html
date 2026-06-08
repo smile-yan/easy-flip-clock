@@ -7,7 +7,7 @@
         <script src="js/jquery.min.js"></script>
         <script src="js/flipclock.min.js"></script>
     </head>
-    <body data-theme="dark">
+    <body>
         <div class="container">
             <div class="date-bar">
                 <span class="weekday" id="dateDisplay">hello world</span>
@@ -65,6 +65,25 @@
                 </div>
             </section>
 
+            <!-- 主题 -->
+            <section class="settings-section">
+                <span class="section-label">主题：</span>
+                <div class="select-wrapper">
+                    <select id="themeSelect" class="settings-select">
+                        <option value="dark">深色</option>
+                        <option value="light">浅色</option>
+                        <option value="sepia">米色</option>
+                        <option value="blue">蓝色</option>
+                        <option value="forest">森林</option>
+                        <option value="sunset">日落</option>
+                        <option value="midnight">深夜</option>
+                        <option value="ocean">海洋</option>
+                        <option value="rose">玫瑰</option>
+                        <option value="slate">石板</option>
+                    </select>
+                </div>
+            </section>
+
             <!-- 显示 -->
             <section class="settings-section">
                 <span class="section-label">显示：</span>
@@ -91,17 +110,6 @@
             <section class="settings-section motto-input-section">
                 <input type="text" id="mottoInput" class="settings-text-input" maxlength="200"
                     placeholder="输入完成后，单击空白空间以确认。">
-            </section>
-
-            <!-- 颜色 (Pro) -->
-            <section class="settings-section">
-                <span class="section-label">颜色：<span class="pro-tag">(Pro)</span></span>
-                <div class="color-picker" id="colorPicker" aria-disabled="true">
-                    <div class="color-track"></div>
-                    <div class="color-handle" id="colorHandle" style="left: 30%;">
-                        <span class="color-arrow">⌃</span>
-                    </div>
-                </div>
             </section>
         </div>
 
@@ -159,6 +167,7 @@
                 // 把当前配置回填到表单
                 setRadio('style', currentConfig.style)
                 setSelect('timeFormatSelect', currentConfig.time_format)
+                setSelect('themeSelect', currentConfig.theme)
                 setCheckbox('showDateCheck', currentConfig.show_date)
                 setCheckbox('showLunarCheck', currentConfig.show_lunar)
                 setCheckbox('showMottoCheck', currentConfig.show_motto)
@@ -217,8 +226,7 @@
                     show_date: document.getElementById('showDateCheck').checked,
                     show_seconds: style === 'with-seconds',
                     show_lunar: document.getElementById('showLunarCheck').checked,
-                    show_motto: document.getElementById('showMottoCheck').checked,
-                    color: currentConfig.color || ''
+                    show_motto: document.getElementById('showMottoCheck').checked
                 }
             }
 
@@ -258,9 +266,11 @@
             }
 
             function applyTheme(theme) {
-                const valid = ['dark', 'light', 'sepia', 'blue']
+                const valid = ['dark', 'light', 'sepia', 'blue', 'forest', 'sunset', 'midnight', 'ocean', 'rose', 'slate']
                 if (!valid.includes(theme)) theme = 'dark'
-                document.body.setAttribute('data-theme', theme)
+                // CSS 用 :root[data-theme="X"] 匹配，:root 是 <html>，所以必须设在 documentElement 上，
+                // 设到 <body> 永远不会匹配，原代码长期待机。
+                document.documentElement.setAttribute('data-theme', theme)
                 currentConfig.theme = theme
             }
 
@@ -353,6 +363,12 @@
                 document.getElementById('timeFormatSelect').addEventListener('change', function () {
                     currentConfig.time_format = this.value
                     applyClock()
+                    scheduleSave()
+                })
+
+                // 主题
+                document.getElementById('themeSelect').addEventListener('change', function () {
+                    applyTheme(this.value)
                     scheduleSave()
                 })
 
