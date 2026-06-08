@@ -75,11 +75,6 @@
                         <span class="check-text">日期</span>
                     </label>
                     <label class="check-line">
-                        <input type="checkbox" id="showSecondsCheck">
-                        <span class="check-box"></span>
-                        <span class="check-text">秒</span>
-                    </label>
-                    <label class="check-line">
                         <input type="checkbox" id="showLunarCheck">
                         <span class="check-box"></span>
                         <span class="check-text">农历</span>
@@ -165,7 +160,6 @@
                 setRadio('style', currentConfig.style)
                 setSelect('timeFormatSelect', currentConfig.time_format)
                 setCheckbox('showDateCheck', currentConfig.show_date)
-                setCheckbox('showSecondsCheck', currentConfig.show_seconds)
                 setCheckbox('showLunarCheck', currentConfig.show_lunar)
                 setCheckbox('showMottoCheck', currentConfig.show_motto)
                 setText('mottoInput', currentConfig.motto)
@@ -219,7 +213,7 @@
                     style: style,
                     time_format: timeFormat,
                     show_date: document.getElementById('showDateCheck').checked,
-                    show_seconds: document.getElementById('showSecondsCheck').checked,
+                    show_seconds: style === 'with-seconds',
                     show_lunar: document.getElementById('showLunarCheck').checked,
                     show_motto: document.getElementById('showMottoCheck').checked,
                     color: currentConfig.color || ''
@@ -228,6 +222,12 @@
 
             function applyConfig(cfg) {
                 currentConfig = Object.assign({}, DEFAULT_CONFIG, cfg || {})
+                // 样式（with-seconds/without-seconds）是秒显示的唯一控制源
+                if (currentConfig.style === 'with-seconds') {
+                    currentConfig.show_seconds = true
+                } else if (currentConfig.style === 'without-seconds') {
+                    currentConfig.show_seconds = false
+                }
                 applyTheme(currentConfig.theme)
                 applyClock()
                 applyDisplays()
@@ -275,20 +275,15 @@
                 // 注意：clockFace 的值是 FlipClock 注册的名字（已含 Face 后缀），
                 // loadClockFace 会再拼一次 "Face"，所以直接用库里注册的值。
                 const face = is12h ? 'TwelveHourClock' : 'TwentyFourHourClock'
-                // 24h face (TwentyFourHourClock) 在 FlipClock 库内不支持
-                // showSeconds 透传（始终只显示 HH:MM），所以秒显示只对
-                // 12h face 生效。style 预设（with-seconds/without-seconds）
-                // 优先于 showSeconds 复选框，避免两个控件相互打架。
-                const opts = { clockFace: face }
-                if (is12h) {
-                    let showSeconds = !!currentConfig.show_seconds
-                    if (currentConfig.style === 'with-seconds') {
-                        showSeconds = true
-                    } else if (currentConfig.style === 'without-seconds') {
-                        showSeconds = false
-                    }
-                    opts.showSeconds = showSeconds
+                // 样式（with-seconds/without-seconds）控制是否显示秒，
+                // 与时间格式（24h/12h）相互独立。
+                let showSeconds = !!currentConfig.show_seconds
+                if (currentConfig.style === 'with-seconds') {
+                    showSeconds = true
+                } else if (currentConfig.style === 'without-seconds') {
+                    showSeconds = false
                 }
+                const opts = { clockFace: face, showSeconds: showSeconds }
                 try {
                     // 必须传 new Date() 作为起始时间：
                     //   - 24h face 在不传时内部会自动 fallback 到 new Date()
@@ -331,12 +326,7 @@
                 document.querySelectorAll('input[name="style"]').forEach(function (r) {
                     r.addEventListener('change', function () {
                         currentConfig.style = this.value
-                        // 同步秒显示复选框的视觉状态，避免两个控件状态错位
-                        if (this.value === 'with-seconds') {
-                            setCheckbox('showSecondsCheck', true)
-                        } else if (this.value === 'without-seconds') {
-                            setCheckbox('showSecondsCheck', false)
-                        }
+                        currentConfig.show_seconds = (this.value === 'with-seconds')
                         // 样式变化（是否显示秒位）需要重建时钟才能生效
                         applyClock()
                         scheduleSave()
@@ -351,18 +341,16 @@
                 })
 
                 // 显示复选框
-                ;['showDateCheck', 'showSecondsCheck', 'showLunarCheck', 'showMottoCheck'].forEach(function (id) {
+                ;['showDateCheck', 'showLunarCheck', 'showMottoCheck'].forEach(function (id) {
                     const el = document.getElementById(id)
                     el.addEventListener('change', function () {
                         const map = {
                             showDateCheck: 'show_date',
-                            showSecondsCheck: 'show_seconds',
                             showLunarCheck: 'show_lunar',
                             showMottoCheck: 'show_motto'
                         }
                         currentConfig[map[id]] = this.checked
                         applyDisplays()
-                        if (id === 'showSecondsCheck') applyClock()
                         scheduleSave()
                     })
                 })
@@ -386,13 +374,19 @@
                     return
                 }
                 window.go.main.App.GetConfig().then(function (cfg) {
+                    // 先用样式归一化 show_seconds，确保 needRebuild 判断基于一致的状态
+                    const normalizedCfg = Object.assign({}, DEFAULT_CONFIG, cfg || {})
+                    if (normalizedCfg.style === 'with-seconds') {
+                        normalizedCfg.show_seconds = true
+                    } else if (normalizedCfg.style === 'without-seconds') {
+                        normalizedCfg.show_seconds = false
+                    }
                     // 主题、显示开关等是覆盖式更新；time_format/style 变了才重建。
                     const needRebuild =
-                        !cfg ||
-                        cfg.time_format !== currentConfig.time_format ||
-                        cfg.style !== currentConfig.style ||
-                        !!cfg.show_seconds !== !!currentConfig.show_seconds
-                    currentConfig = Object.assign({}, DEFAULT_CONFIG, cfg || {})
+                        normalizedCfg.time_format !== currentConfig.time_format ||
+                        normalizedCfg.style !== currentConfig.style ||
+                        !!normalizedCfg.show_seconds !== !!currentConfig.show_seconds
+                    currentConfig = normalizedCfg
                     applyTheme(currentConfig.theme)
                     applyDisplays()
                     if (needRebuild) buildClock()
