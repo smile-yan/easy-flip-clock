@@ -112,7 +112,7 @@
 
             // === 默认配置 ===
             const DEFAULT_CONFIG = {
-                motto: 'Time flies!',
+                motto: '君子三思而后行',
                 theme: 'dark',
                 style: 'with-seconds',
                 time_format: '24h',
@@ -189,18 +189,20 @@
             }
 
             function persistConfig(immediate) {
-                if (!window.go || !window.go.main || !window.go.main.App) return
-                const fn = window.go.main.App.SaveSettings
-                if (typeof fn !== 'function') return
-                const payload = collectPayload()
-                try {
-                    const ret = fn(payload)
-                    if (ret && typeof ret.catch === 'function') {
-                        ret.catch(function (err) { console.error('保存设置失败:', err) })
-                    }
-                } catch (err) {
-                    console.error('保存设置异常:', err)
+                console.log('[frontend] persistConfig called, immediate=' + immediate)
+                if (!window.wails || !window.wails.CallByName) {
+                    console.warn('[frontend] window.wails.CallByName not available')
+                    return
                 }
+                const payload = collectPayload()
+                console.log('[frontend] calling SaveSettings with payload:', payload)
+                window.wails.CallByName('main.App.SaveSettings', payload)
+                    .then(function (result) {
+                        console.log('[frontend] SaveSettings resolved:', result)
+                    })
+                    .catch(function (err) {
+                        console.error('[frontend] 保存设置失败:', err)
+                    })
             }
 
             function collectPayload() {
@@ -370,10 +372,14 @@
             function applyPersistedConfig() {
                 // 先用默认配置同步初始化一次 FlipClock，避免空白。
                 applyConfig(DEFAULT_CONFIG)
-                if (!window.go || !window.go.main || !window.go.main.App || !window.go.main.App.GetConfig) {
+                if (!window.wails || !window.wails.CallByName) {
+                    console.warn('[frontend] window.wails.CallByName not available')
                     return
                 }
-                window.go.main.App.GetConfig().then(function (cfg) {
+                console.log('[frontend] calling GetConfig...')
+                window.wails.CallByName('main.App.GetConfig')
+                    .then(function (cfg) {
+                        console.log('[frontend] GetConfig returned:', cfg)
                     // 先用样式归一化 show_seconds，确保 needRebuild 判断基于一致的状态
                     const normalizedCfg = Object.assign({}, DEFAULT_CONFIG, cfg || {})
                     if (normalizedCfg.style === 'with-seconds') {
@@ -467,7 +473,11 @@
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'F11') {
                     e.preventDefault()
-                    window.go.main.App.ToggleFullscreen()
+                    if (window.wails && window.wails.CallByName) {
+                        window.wails.CallByName('main.App.ToggleFullscreen').catch(function(err) {
+                            console.error('[frontend] ToggleFullscreen failed:', err)
+                        })
+                    }
                 }
                 // 禁止 Cmd+W 关闭窗口
                 if ((e.metaKey || e.ctrlKey) && e.key === 'w') {

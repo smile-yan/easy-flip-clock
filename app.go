@@ -47,9 +47,13 @@ func (a *App) shutdown() {
 
 func (a *App) GetConfig() map[string]any {
 	if a.config == nil {
+		log.Println("[App] GetConfig called with nil config, using defaults")
 		a.config = DefaultConfig()
 	}
 	applyConfigDefaults(a.config)
+	log.Printf("[App] GetConfig: motto=%q theme=%s style=%s time_format=%s show_date=%v show_seconds=%v show_lunar=%v show_motto=%v",
+		a.config.Motto, a.config.Theme, a.config.Style, a.config.TimeFormat,
+		a.config.ShowDate, a.config.ShowSeconds, a.config.ShowLunar, a.config.ShowMotto)
 	return map[string]any{
 		"motto":        a.config.Motto,
 		"width":        a.config.Width,
@@ -90,46 +94,55 @@ func (a *App) SaveTheme(theme string) error {
 }
 
 // SaveSettings 一次性保存设置面板中可调的所有字段。
-// Pro 字段（color）即使传入也会被清空，仅作为占位。
-func (a *App) SaveSettings(payload SettingsPayload) error {
+// 参数使用 map[string]any，因为当前 Wails v3 绑定层不会把 JS 对象自动转换成 Go 结构体。
+// Pro 字段（color）即使传入也会被保存，仅作为占位。
+func (a *App) SaveSettings(payload map[string]any) error {
+	log.Printf("[App] SaveSettings called with payload=%+v", payload)
 	if a.config == nil {
+		log.Println("[App] SaveSettings: config is nil, initializing defaults")
 		a.config = DefaultConfig()
 	}
 	applyConfigDefaults(a.config)
 
 	// motto 允许空字符串（用户清空座右铭），不要用非空守卫
-	a.config.Motto = payload.Motto
-	a.config.ShowInDock = payload.ShowInDock
-	if isValidTheme(payload.Theme) {
-		a.config.Theme = payload.Theme
+	if v, ok := payload["motto"].(string); ok {
+		a.config.Motto = v
 	}
-	if isValidStyle(payload.Style) {
-		a.config.Style = payload.Style
+	if v, ok := payload["show_in_dock"].(bool); ok {
+		a.config.ShowInDock = v
 	}
-	if isValidTimeFormat(payload.TimeFormat) {
-		a.config.TimeFormat = payload.TimeFormat
+	if v, ok := payload["theme"].(string); ok && isValidTheme(v) {
+		a.config.Theme = v
 	}
-	a.config.ShowDate = payload.ShowDate
-	a.config.ShowSeconds = payload.ShowSeconds
-	a.config.ShowLunar = payload.ShowLunar
-	a.config.ShowMotto = payload.ShowMotto
+	if v, ok := payload["style"].(string); ok && isValidStyle(v) {
+		a.config.Style = v
+	}
+	if v, ok := payload["time_format"].(string); ok && isValidTimeFormat(v) {
+		a.config.TimeFormat = v
+	}
+	if v, ok := payload["show_date"].(bool); ok {
+		a.config.ShowDate = v
+	}
+	if v, ok := payload["show_seconds"].(bool); ok {
+		a.config.ShowSeconds = v
+	}
+	if v, ok := payload["show_lunar"].(bool); ok {
+		a.config.ShowLunar = v
+	}
+	if v, ok := payload["show_motto"].(bool); ok {
+		a.config.ShowMotto = v
+	}
 	// color 字段属于 Pro 功能，目前只存不生效。
-	a.config.Color = payload.Color
-	return Save(a.config)
-}
-
-// SettingsPayload 是一次性保存的设置集合。
-type SettingsPayload struct {
-	Motto       string `json:"motto"`
-	ShowInDock  bool   `json:"show_in_dock"`
-	Theme       string `json:"theme"`
-	Style       string `json:"style"`
-	TimeFormat  string `json:"time_format"`
-	ShowDate    bool   `json:"show_date"`
-	ShowSeconds bool   `json:"show_seconds"`
-	ShowLunar   bool   `json:"show_lunar"`
-	ShowMotto   bool   `json:"show_motto"`
-	Color       string `json:"color"`
+	if v, ok := payload["color"].(string); ok {
+		a.config.Color = v
+	}
+	log.Printf("[App] SaveSettings: updated config motto=%q theme=%s style=%s time_format=%s", a.config.Motto, a.config.Theme, a.config.Style, a.config.TimeFormat)
+	if err := Save(a.config); err != nil {
+		log.Printf("[App] SaveSettings failed: %v", err)
+		return err
+	}
+	log.Println("[App] SaveSettings succeeded")
+	return nil
 }
 
 func isValidTheme(theme string) bool {
@@ -271,6 +284,7 @@ func main() {
 		log.Printf("Failed to load config, using defaults: %v", err)
 		cfg = DefaultConfig()
 	}
+	log.Printf("[main] Loaded config motto=%q theme=%s style=%s time_format=%s", cfg.Motto, cfg.Theme, cfg.Style, cfg.TimeFormat)
 
 	// 读取应用图标
 	iconPath := "frontend/imgs/app-icon-1024.png"
@@ -283,6 +297,8 @@ func main() {
 	versionResult := CheckForUpdate()
 	description := versionResult.CurrentVer + "\nhttps://github.com/smile-yan/easy-flip-clock"
 
+	app := &App{config: cfg}
+
 	globalApp = application.New(application.Options{
 		Name:        "easy-flip-clock",
 		Description: description,
@@ -292,7 +308,7 @@ func main() {
 		},
 		Mac: macOptionsForConfig(cfg),
 		Bind: []any{
-			&App{},
+			app,
 		},
 	})
 
@@ -305,6 +321,15 @@ func main() {
 		Height: cfg.Height,
 		X:      cfg.X,
 		Y:      cfg.Y,
+		ShouldClose: func(window *application.WebviewWindow) bool {
+			log.Println("[main] ShouldClose triggered, saving config")
+			if err := Save(app.config); err != nil {
+				log.Printf("[main] Failed to save config on close: %v", err)
+			} else {
+				log.Println("[main] Config saved on close")
+			}
+			return true
+		},
 	})
 
 	err = globalApp.Run()

@@ -179,7 +179,7 @@ APPLESCRIPT
 
 ```json
 {
-  "motto": "Time flies!",
+  "motto": "君子三思而后行",
   "width": 600,
   "height": 300,
   "x": -1,
