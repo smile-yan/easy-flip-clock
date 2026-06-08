@@ -22,9 +22,7 @@
     <!-- 设置弹窗 -->
     <div class="settings-modal visible" id="settingsModal" role="dialog" aria-labelledby="settingsTitle">
         <div class="window-chrome">
-            <span class="dot red"></span>
-            <span class="dot yellow"></span>
-            <span class="dot green"></span>
+            <span class="dot red close-btn" id="closeBtn" role="button" aria-label="关闭" title="关闭"></span>
             <span class="window-title" id="settingsTitle">设置</span>
         </div>
 
@@ -119,6 +117,7 @@
             else show()
         })
         overlay.addEventListener('click', hide)
+        document.getElementById('closeBtn').addEventListener('click', hide)
     </script>
 </body>
 </html>

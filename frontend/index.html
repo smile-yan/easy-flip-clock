@@ -23,9 +23,7 @@
         <!-- 设置弹窗 -->
         <div class="settings-modal" id="settingsModal" role="dialog" aria-labelledby="settingsTitle">
             <div class="window-chrome">
-                <span class="dot red"></span>
-                <span class="dot yellow"></span>
-                <span class="dot green"></span>
+                <span class="dot red close-btn" id="closeBtn" role="button" aria-label="关闭" title="关闭"></span>
                 <span class="window-title" id="settingsTitle">设置</span>
             </div>
 
@@ -322,6 +320,15 @@
                     flushSave(true)
                     closeSettings()
                 })
+
+                // 关闭：点击左上角红点
+                const closeBtn = document.getElementById('closeBtn')
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function () {
+                        flushSave(true)
+                        closeSettings()
+                    })
+                }
 
                 // Esc 关闭
                 document.addEventListener('keydown', function (e) {

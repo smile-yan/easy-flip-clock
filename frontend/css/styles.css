@@ -195,6 +195,35 @@ body {
 .settings-modal .window-chrome .dot.red    { background: #ff5f57; }
 .settings-modal .window-chrome .dot.yellow { background: #febc2e; }
 .settings-modal .window-chrome .dot.green  { background: #28c840; }
+
+/* 关闭按钮：可点击的视觉提示 */
+.settings-modal .window-chrome .dot.close-btn {
+    cursor: pointer;
+    position: relative;
+}
+.settings-modal .window-chrome .dot.close-btn::before,
+.settings-modal .window-chrome .dot.close-btn::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 8px;
+    height: 1.5px;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: 1px;
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(45deg);
+    transition: opacity 0.12s ease;
+}
+.settings-modal .window-chrome .dot.close-btn::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+.settings-modal .window-chrome .dot.close-btn:hover::before,
+.settings-modal .window-chrome .dot.close-btn:hover::after,
+.settings-modal .window-chrome .dot.close-btn:focus-visible::before,
+.settings-modal .window-chrome .dot.close-btn:focus-visible::after {
+    opacity: 1;
+}
 .settings-modal .window-chrome .window-title {
     position: absolute;
     left: 50%;
