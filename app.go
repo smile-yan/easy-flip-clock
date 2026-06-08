@@ -49,6 +49,7 @@ func (a *App) GetConfig() map[string]any {
 	if a.config == nil {
 		a.config = DefaultConfig()
 	}
+	applyConfigDefaults(a.config)
 	return map[string]any{
 		"motto":        a.config.Motto,
 		"width":        a.config.Width,
@@ -56,6 +57,14 @@ func (a *App) GetConfig() map[string]any {
 		"x":            a.config.X,
 		"y":            a.config.Y,
 		"show_in_dock": a.config.ShowInDock,
+		"theme":        a.config.Theme,
+		"style":        a.config.Style,
+		"time_format":  a.config.TimeFormat,
+		"show_date":    a.config.ShowDate,
+		"show_seconds": a.config.ShowSeconds,
+		"show_lunar":   a.config.ShowLunar,
+		"show_motto":   a.config.ShowMotto,
+		"color":        a.config.Color,
 	}
 }
 
@@ -66,6 +75,101 @@ func (a *App) SaveConfig(motto string, showInDock bool) error {
 	a.config.Motto = motto
 	a.config.ShowInDock = showInDock
 	return Save(a.config)
+}
+
+// SaveTheme 仅更新主题设置并持久化。
+func (a *App) SaveTheme(theme string) error {
+	if a.config == nil {
+		a.config = DefaultConfig()
+	}
+	if !isValidTheme(theme) {
+		return fmt.Errorf("unsupported theme: %s", theme)
+	}
+	a.config.Theme = theme
+	return Save(a.config)
+}
+
+// SaveSettings 一次性保存设置面板中可调的所有字段。
+// Pro 字段（color）即使传入也会被清空，仅作为占位。
+func (a *App) SaveSettings(payload SettingsPayload) error {
+	if a.config == nil {
+		a.config = DefaultConfig()
+	}
+	applyConfigDefaults(a.config)
+
+	// motto 允许空字符串（用户清空座右铭），不要用非空守卫
+	a.config.Motto = payload.Motto
+	a.config.ShowInDock = payload.ShowInDock
+	if isValidTheme(payload.Theme) {
+		a.config.Theme = payload.Theme
+	}
+	if isValidStyle(payload.Style) {
+		a.config.Style = payload.Style
+	}
+	if isValidTimeFormat(payload.TimeFormat) {
+		a.config.TimeFormat = payload.TimeFormat
+	}
+	a.config.ShowDate = payload.ShowDate
+	a.config.ShowSeconds = payload.ShowSeconds
+	a.config.ShowLunar = payload.ShowLunar
+	a.config.ShowMotto = payload.ShowMotto
+	// color 字段属于 Pro 功能，目前只存不生效。
+	a.config.Color = payload.Color
+	return Save(a.config)
+}
+
+// SettingsPayload 是一次性保存的设置集合。
+type SettingsPayload struct {
+	Motto       string `json:"motto"`
+	ShowInDock  bool   `json:"show_in_dock"`
+	Theme       string `json:"theme"`
+	Style       string `json:"style"`
+	TimeFormat  string `json:"time_format"`
+	ShowDate    bool   `json:"show_date"`
+	ShowSeconds bool   `json:"show_seconds"`
+	ShowLunar   bool   `json:"show_lunar"`
+	ShowMotto   bool   `json:"show_motto"`
+	Color       string `json:"color"`
+}
+
+func isValidTheme(theme string) bool {
+	for _, t := range AvailableThemes {
+		if t == theme {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidStyle(style string) bool {
+	for _, s := range AvailableStyles {
+		if s == style {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidTimeFormat(format string) bool {
+	for _, f := range AvailableTimeFormats {
+		if f == format {
+			return true
+		}
+	}
+	return false
+}
+
+// applyConfigDefaults 对从老版本配置文件读出的 Config 做字段补全。
+func applyConfigDefaults(cfg *Config) {
+	if cfg.Theme == "" {
+		cfg.Theme = DefaultTheme
+	}
+	if cfg.Style == "" {
+		cfg.Style = DefaultStyle
+	}
+	if cfg.TimeFormat == "" {
+		cfg.TimeFormat = DefaultTimeFormat
+	}
 }
 
 func (a *App) BeforeClose(ctx context.Context) bool {
@@ -96,8 +200,10 @@ func createCustomMenuBar(result *UpdateResult) *application.Menu {
 	})
 	appMenu.AddSeparator()
 	appMenu.Add("设置").OnClick(func(ctx *application.Context) {
-		// TODO: 打开设置界面
-		log.Println("打开设置")
+		// 通过事件通知前端打开设置弹窗
+		globalApp.Events.Emit(&application.WailsEvent{
+			Name: "open-settings",
+		})
 	})
 	appMenu.Add("检查更新").OnClick(func(ctx *application.Context) {
 		log.Printf("检查更新结果: %+v", result)

@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>FlipClock Debug</title>
+    <link rel="stylesheet" href="frontend/css/flipclock.css">
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <script src="frontend/js/jquery.min.js"></script>
+    <script src="frontend/js/flipclock.min.js"></script>
+</head>
+<body>
+    <h2>24h</h2>
+    <div id="c24"></div>
+    <h2>12h</h2>
+    <div id="c12"></div>
+    <pre id="log"></pre>
+    <script>
+        function log(msg) {
+            document.getElementById('log').textContent += msg + '\n';
+        }
+
+        $(function() {
+            var now = new Date();
+            log('Time: ' + now);
+
+            var c24 = $('#c24').FlipClock(now, { clockFace: 'TwentyFourHourClock' });
+            var c12 = $('#c12').FlipClock(now, { clockFace: 'TwelveHourClock' });
+            $('#c12').addClass('is-12h');
+
+            log('c24 face: ' + c24.getFace().constructor.name);
+            log('c12 face: ' + c12.getFace().constructor.name);
+
+            log('c12 #c12 classes: ' + document.getElementById('c12').className);
+            log('c12 meridium count: ' + document.querySelectorAll('#c12 .flip-clock-meridium').length);
+            log('c12 meridium html: ' + (document.querySelector('#c12 .flip-clock-meridium') || {}).outerHTML);
+            log('c12 meridium text: ' + (document.querySelector('#c12 .flip-clock-meridium') || {}).textContent);
+
+            var lists = document.querySelectorAll('#c12 ul');
+            log('c12 ul count: ' + lists.length);
+            lists.forEach(function(ul, i) {
+                log('  ul[' + i + '] class=' + ul.className + ' text=' + ul.textContent.trim().substring(0,30));
+            });
+        });
+    </script>
+</body>
+</html>
