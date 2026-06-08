@@ -93,18 +93,24 @@ body {
     transition: transform 0.2s ease-out;
 }
 
+.date-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--weekday-color);
+}
+
 .weekday {
-    text-align: center;
     color: var(--weekday-color);
     font-size: 13px;
-    margin-bottom: 8px;
 }
 
 .lunar {
-    text-align: center;
-    color: var(--lunar-color);
-    font-size: 12px;
-    margin-bottom: 4px;
+    color: var(--weekday-color);
+    font-size: 13px;
     min-height: 16px;
 }
 
