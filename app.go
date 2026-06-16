@@ -1,11 +1,9 @@
 package main
 
 import (
-	"context"
 	"embed"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -32,6 +30,11 @@ func (a *App) ToggleFullscreen() {
 		}
 	}
 }
+
+// appIconPNG 在编译期嵌入应用图标，避免在 Windows 下因工作目录不确定而读不到文件。
+//
+//go:embed frontend/imgs/app-icon-1024.png
+var appIconPNG []byte
 
 func (a *App) startup(runtime any) {
 	cfg, err := Load()
@@ -185,16 +188,6 @@ func applyConfigDefaults(cfg *Config) {
 	}
 }
 
-func (a *App) BeforeClose(ctx context.Context) bool {
-	if a.config != nil {
-		if err := Save(a.config); err != nil {
-			log.Printf("Failed to save config on close: %v", err)
-		}
-	}
-	// 返回 false，close button 可以关闭应用（BeforeClose 返回值只阻止 JS 触发，Cmd+Q 和 close button 不受影响）
-	return false
-}
-
 func macOptionsForConfig(cfg *Config) application.MacOptions {
 	return application.MacOptions{
 		ActivationPolicy: application.ActivationPolicyRegular,
@@ -253,7 +246,7 @@ func createCustomMenuBar(result *UpdateResult) *application.Menu {
 	})
 	appMenu.AddSeparator()
 	quitItem := appMenu.Add("退出")
-	quitItem.SetAccelerator("cmd+q")
+	quitItem.SetAccelerator("CmdOrCtrl+q")
 	quitItem.OnClick(func(ctx *application.Context) {
 		globalApp.Quit()
 	})
@@ -264,7 +257,7 @@ func createCustomMenuBar(result *UpdateResult) *application.Menu {
 	windowMenu.AddRole(application.Zoom)
 	windowMenu.AddSeparator()
 	fullscreenItem := windowMenu.Add("进入全屏")
-	fullscreenItem.SetAccelerator("ctrl+cmd+f")
+	fullscreenItem.SetAccelerator("F11")
 	fullscreenItem.OnClick(func(ctx *application.Context) {
 		if mainWindow != nil {
 			if mainWindow.IsFullscreen() {
@@ -286,13 +279,6 @@ func main() {
 	}
 	log.Printf("[main] Loaded config motto=%q theme=%s style=%s time_format=%s", cfg.Motto, cfg.Theme, cfg.Style, cfg.TimeFormat)
 
-	// 读取应用图标
-	iconPath := "frontend/imgs/app-icon-1024.png"
-	iconData, err := os.ReadFile(iconPath)
-	if err != nil {
-		log.Printf("Failed to load icon: %v", err)
-	}
-
 	// 关于对话框描述：版本号 + 开源地址
 	versionResult := CheckForUpdate()
 	description := versionResult.CurrentVer + "\nhttps://github.com/smile-yan/easy-flip-clock"
@@ -302,7 +288,7 @@ func main() {
 	globalApp = application.New(application.Options{
 		Name:        "easy-flip-clock",
 		Description: description,
-		Icon:        iconData,
+		Icon:        appIconPNG,
 		Assets: application.AssetOptions{
 			FS: assets,
 		},

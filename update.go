@@ -1,19 +1,20 @@
 package main
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // CurrentVersion 当前版本号
-// 在 init() 中从 wails.json 的 version 字段读取
+// 在 init() 中从嵌入的 wails.json 的 version 字段读取
 var CurrentVersion = "0.0.0"
 
 // GitHub 仓库地址
@@ -25,16 +26,15 @@ type wailsConfig struct {
 	Version string `json:"version"`
 }
 
-// init 在程序启动时从 wails.json 读取 version 作为 CurrentVersion 的初始值
-func init() {
-	data, err := os.ReadFile("wails.json")
-	if err != nil {
-		log.Printf("读取 wails.json 失败，使用默认版本 %s: %v", CurrentVersion, err)
-		return
-	}
+// wailsJSONData 在编译期嵌入 wails.json，避免在 Windows 下因工作目录不确定而读不到文件。
+//
+//go:embed wails.json
+var wailsJSONData []byte
 
+// init 在程序启动时从嵌入的 wails.json 读取 version 作为 CurrentVersion 的初始值
+func init() {
 	var cfg wailsConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := json.Unmarshal(wailsJSONData, &cfg); err != nil {
 		log.Printf("解析 wails.json 失败，使用默认版本 %s: %v", CurrentVersion, err)
 		return
 	}
@@ -135,7 +135,8 @@ func CheckForUpdate() *UpdateResult {
 	// 调用 GitHub API 获取最新 release
 	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", RepoOwner, RepoName)
 
-	client := &http.Client{}
+	// 5 秒超时，避免在网络受限 / DNS 慢的环境下阻塞应用启动
+	client := &http.Client{Timeout: 5 * time.Second}
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		result.Message = fmt.Sprintf("创建请求失败: %v", err)
