@@ -84,7 +84,13 @@ jobs:
           set -euo pipefail
           out_dir="dist/${APP_NAME}-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}"
           mkdir -p "${out_dir}"
-          go build -ldflags="-s -w" -o "${out_dir}/${APP_NAME}-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}${{ matrix.ext }}" .
+          # -H windowsgui 仅对 Windows 平台生效，避免双击 exe 时弹出控制台黑窗
+          if [ "${GOOS}" = "windows" ]; then
+            ldflags="-s -w -H windowsgui"
+          else
+            ldflags="-s -w"
+          fi
+          go build -ldflags="${ldflags}" -o "${out_dir}/${APP_NAME}-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}${{ matrix.ext }}" .
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v6
