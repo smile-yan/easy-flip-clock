@@ -5,7 +5,7 @@
     "name": "smileyan",
     "email": "root@smileyan.cn"
   },
-  "version": "0.0.5",
+  "version": "0.0.6",
   "platforms": ["darwin", "windows", "linux"],
   "devtools": true
 }
