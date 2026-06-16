@@ -1,0 +1,35 @@
+<html>
+<head>
+    <title>FlipClock Test</title>
+    <link rel="stylesheet" href="css/flipclock.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/flipclock.min.js"></script>
+</head>
+<body>
+    <h2>24h (TwentyFourHourClock)</h2>
+    <div id="clock24"></div>
+    <h2>12h (TwelveHourClockFace)</h2>
+    <div id="clock12"></div>
+    <h2>Counter (HourlyCounter)</h2>
+    <div id="clockCounter"></div>
+    <script>
+        $(function() {
+            var now = new Date();
+            console.log('Current time:', now);
+
+            // Test 24h face
+            var c24 = $('#clock24').FlipClock(now, { clockFace: 'TwentyFourHourClock' });
+
+            // Test 12h face
+            var c12 = $('#clock12').FlipClock(now, { clockFace: 'TwelveHourClockFace' });
+
+            // Test HourlyCounter
+            var cCtr = $('#clockCounter').FlipClock(now, { clockFace: 'HourlyCounter' });
+
+            console.log('Clock24 face:', c24.getFace().constructor.name);
+            console.log('Clock12 face:', c12.getFace().constructor.name);
+            console.log('ClockCounter face:', cCtr.getFace().constructor.name);
+        });
+    </script>
+</body>
+</html>

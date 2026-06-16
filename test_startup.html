@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>启动时序测试</title>
+<link rel="stylesheet" href="frontend/css/flipclock.css">
+<link rel="stylesheet" href="frontend/css/styles.css">
+<style>
+body { background: #010101; color: #fff; font-family: sans-serif; padding: 20px; }
+.clock { margin: 12px 0; }
+#log { color: #888; font-size: 12px; margin-top: 20px; max-width: 600px; }
+</style>
+</head>
+<body>
+<h3>Wails 启动同步路径测试（Chrome 无 wails 上下文，走 default 同步分支）</h3>
+<div class="clock" id="clock"></div>
+<div id="now">系统时间：</div>
+<div id="log"></div>
+
+<script src="frontend/js/jquery.min.js"></script>
+<script src="frontend/js/flipclock.min.js"></script>
+<script>
+const log = document.getElementById('log');
+function L(msg) {
+  const t = new Date();
+  const ms = String(t.getMilliseconds()).padStart(3, '0');
+  log.innerHTML += `[${t.getHours()}:${t.getMinutes()}:${t.getSeconds()}.${ms}] ${msg}<br>`;
+}
+function tickNow() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('now').textContent =
+    '系统时间: ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+setInterval(tickNow, 1000);
+tickNow();
+
+L('开始执行脚本');
+
+// 直接复制 index.html 里的最小初始化
+var clock = null;
+const DEFAULT_CONFIG = {
+  motto: '君子三思而后行', theme: 'dark', style: 'with-seconds',
+  time_format: '24h', show_date: true, show_seconds: true,
+  show_lunar: false, show_motto: true, color: ''
+};
+let currentConfig = Object.assign({}, DEFAULT_CONFIG);
+
+function buildClock() {
+  if (clock && typeof clock.clearInterval === 'function') {
+    try { clock.clearInterval() } catch (e) {}
+  }
+  if (clock && typeof clock.stop === 'function') {
+    try { clock.stop() } catch (e) {}
+  }
+  const $clock = $('#clock');
+  $clock.empty();
+  const is12h = currentConfig.time_format === '12h';
+  const face = is12h ? 'HourlyCounter' : 'TwentyFourHourClock';
+  const opts = { clockFace: face };
+  if (is12h) opts.showSeconds = !!currentConfig.show_seconds;
+  try {
+    clock = $clock.FlipClock(opts);
+    L('buildClock 完成, face=' + face);
+  } catch (e) {
+    L('buildClock 失败: ' + e.message);
+  }
+}
+
+function applyConfig(cfg) {
+  currentConfig = Object.assign({}, DEFAULT_CONFIG, cfg || {});
+  L('applyConfig: time_format=' + currentConfig.time_format);
+  buildClock();
+}
+
+// 模拟 ready 路径
+L('document.ready=' + (document.readyState === 'complete' ? 'complete' : document.readyState));
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    L('DOMContentLoaded 触发');
+    buildClock();
+  });
+} else {
+  buildClock();
+}
+
+// 模拟 visibilitychange 切回前台
+let tabHidden = false;
+setTimeout(function() {
+  L('模拟切到后台');
+  Object.defineProperty(document, 'hidden', { get: () => true, configurable: true });
+  Object.defineProperty(document, 'visibilityState', { get: () => 'hidden', configurable: true });
+  document.dispatchEvent(new Event('visibilitychange'));
+  tabHidden = true;
+}, 3000);
+setTimeout(function() {
+  if (tabHidden) {
+    L('模拟切回前台');
+    Object.defineProperty(document, 'hidden', { get: () => false, configurable: true });
+    Object.defineProperty(document, 'visibilityState', { get: () => 'visible', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  }
+}, 6000);
+</script>
+</body>
+</html>

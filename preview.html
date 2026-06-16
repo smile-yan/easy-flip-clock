@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>设置弹窗预览</title>
+    <link rel="stylesheet" href="frontend/css/styles.css">
+    <style>
+        body { background: #1a1a1a; height: 100vh; }
+        .preview-trigger {
+            position: fixed; top: 20px; right: 20px; z-index: 9999;
+            padding: 10px 20px; background: #fff; color: #000;
+            border: none; border-radius: 6px; cursor: pointer; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <button class="preview-trigger" id="openBtn">打开设置弹窗</button>
+
+    <!-- 弹窗遮罩 -->
+    <div class="settings-overlay visible" id="settingsOverlay"></div>
+
+    <!-- 设置弹窗 -->
+    <div class="settings-modal visible" id="settingsModal" role="dialog" aria-labelledby="settingsTitle">
+        <div class="window-chrome">
+            <span class="dot red close-btn" id="closeBtn" role="button" aria-label="关闭" title="关闭"></span>
+            <span class="window-title" id="settingsTitle">设置</span>
+        </div>
+
+        <section class="settings-section">
+            <span class="section-label">样式：</span>
+            <div class="style-options" id="styleOptions">
+                <label class="style-option" data-style="without-seconds">
+                    <input type="radio" name="style" value="without-seconds">
+                    <div class="preview preview-minimal">
+                        <div class="preview-am-pm">PM</div>
+                        <div class="preview-row">
+                            <div class="preview-card"><span>03</span></div>
+                            <div class="preview-card"><span>35</span></div>
+                        </div>
+                    </div>
+                </label>
+                <label class="style-option" data-style="with-seconds">
+                    <input type="radio" name="style" value="with-seconds" checked>
+                    <div class="preview preview-full">
+                        <div class="preview-row">
+                            <div class="preview-card"><span>03</span></div>
+                            <div class="preview-card"><span>34</span></div>
+                            <div class="preview-card"><span>18</span></div>
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <span class="section-label">时间格式：</span>
+            <div class="select-wrapper">
+                <select id="timeFormatSelect" class="settings-select">
+                    <option value="24h">24 小时</option>
+                    <option value="12h">12 小时</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <span class="section-label">主题：</span>
+            <div class="select-wrapper">
+                <select id="themeSelect" class="settings-select">
+                    <option value="dark">深色</option>
+                    <option value="light">浅色</option>
+                    <option value="sepia">米色</option>
+                    <option value="blue">蓝色</option>
+                    <option value="forest">森林</option>
+                    <option value="sunset">日落</option>
+                    <option value="midnight">深夜</option>
+                    <option value="ocean">海洋</option>
+                    <option value="rose">玫瑰</option>
+                    <option value="slate">石板</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="settings-section">
+            <span class="section-label">显示：</span>
+            <div class="checkbox-grid">
+                <label class="check-line">
+                    <input type="checkbox" id="showDateCheck" checked>
+                    <span class="check-box"></span>
+                    <span class="check-text">日期</span>
+                </label>
+                <label class="check-line">
+                    <input type="checkbox" id="showSecondsCheck" checked>
+                    <span class="check-box"></span>
+                    <span class="check-text">秒</span>
+                </label>
+                <label class="check-line">
+                    <input type="checkbox" id="showLunarCheck">
+                    <span class="check-box"></span>
+                    <span class="check-text">农历</span>
+                </label>
+                <label class="check-line">
+                    <input type="checkbox" id="showMottoCheck" checked>
+                    <span class="check-box"></span>
+                    <span class="check-text">座右铭</span>
+                </label>
+            </div>
+        </section>
+
+        <section class="settings-section motto-input-section">
+            <input type="text" id="mottoInput" class="settings-text-input" maxlength="200"
+                placeholder="输入完成后，单击空白空间以确认。">
+        </section>
+    </div>
+
+    <script>
+        const modal = document.getElementById('settingsModal')
+        const overlay = document.getElementById('settingsOverlay')
+        const openBtn = document.getElementById('openBtn')
+
+        function show() { modal.classList.add('visible'); overlay.classList.add('visible') }
+        function hide() { modal.classList.remove('visible'); overlay.classList.remove('visible') }
+
+        openBtn.addEventListener('click', function () {
+            if (modal.classList.contains('visible')) hide()
+            else show()
+        })
+        overlay.addEventListener('click', hide)
+        document.getElementById('closeBtn').addEventListener('click', hide)
+    </script>
+</body>
+</html>
