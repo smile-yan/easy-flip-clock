@@ -1,0 +1,32 @@
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+        <key>CFBundleName</key>
+        <string>easy-flip-clock (dev)</string>
+        <key>CFBundleExecutable</key>
+        <string>easy-flip-clock</string>
+        <key>CFBundleIdentifier</key>
+        <string>cn.smileyan.easy-flip-clock.dev</string>
+        <key>CFBundleVersion</key>
+        <string>0.0.6</string>
+        <key>CFBundleGetInfoString</key>
+        <string>easy-flip-clock 0.0.6 (dev)</string>
+        <key>CFBundleShortVersionString</key>
+        <string>0.0.6</string>
+        <key>CFBundleIconFile</key>
+        <string>icons</string>
+        <key>LSMinimumSystemVersion</key>
+        <string>12.0.0</string>
+        <key>NSHighResolutionCapable</key>
+        <true/>
+        <key>NSHumanReadableCopyright</key>
+        <string>© 2026 smileyan</string>
+        <key>NSAppTransportSecurity</key>
+        <dict>
+            <key>NSAllowsLocalNetworking</key>
+            <true/>
+        </dict>
+    </dict>
+</plist>
