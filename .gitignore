@@ -118,4 +118,11 @@ output/
 .yarn/install-state.gz
 .pnp.*
 
+# Wails build output (raw binaries, .app bundles, NSIS installers)
+build/bin/
+build/windows/
+
+# macOS Finder metadata
+.DS_Store
+
 easy-flip-clock
